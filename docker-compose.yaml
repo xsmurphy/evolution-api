@@ -1,61 +1,55 @@
-version: '3.9'
+version: "3.9"
 
 services:
-  evolution-api:
-    container_name: evolution_api
+  # ─── Your new Evolution API ───────────────────────────────────────
+  evolution-api-new:
+    container_name: evo_api_new
     image: evoapicloud/evolution-api:latest
     restart: always
     depends_on:
-      - redis
-      - postgres
+      - redis-new
+      - postgres-new
     ports:
-      - "8080:8080"
-    volumes:
-      - evolution_instances:/evolution/instances
+      - "8081:8080"               # NEW host port 8081 → container 8080
     env_file:
-      - .env
+      - .env                      # or point to a duplicated .env-new if you like
     networks:
-      - evolution-net
+      - evo-net-new
 
-  redis:
-    container_name: evolution_redis
+  # ─── A brand‑new Redis ───────────────────────────────────────────
+  redis-new:
+    container_name: evo_redis_new
     image: redis:latest
     restart: always
     command: redis-server --port 6379 --appendonly yes
     ports:
-      - "6379:6379"
+      - "6380:6379"               # NEW host port 6380 → container 6379
     volumes:
-      - evolution_redis:/data
+      - evo_redis_new:/data
     networks:
-      - evolution-net
+      - evo-net-new
 
-  postgres:
-    container_name: evolution_postgres
+  # ─── A brand‑new Postgres ────────────────────────────────────────
+  postgres-new:
+    container_name: evo_postgres_new
     image: postgres:15-alpine
     restart: always
-    command:
-      - postgres
-      - -c
-      - max_connections=1000
-      - -c
-      - listen_addresses=*
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: evolution
       POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"              # NEW host port 5433 → container 5432
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - evo_postgres_new:/var/lib/postgresql/data
     networks:
-      - evolution-net
+      - evo-net-new
 
 volumes:
-  evolution_instances:
-  evolution_redis:
-  postgres_data:
+  evo_redis_new:
+  evo_postgres_new:
 
 networks:
-  evolution-net:
+  evo-net-new:
     driver: bridge
